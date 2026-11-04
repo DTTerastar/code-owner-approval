@@ -89,3 +89,4 @@ node --test index.test.js
 ```
 
 The action is composite. It runs `index.js` through [`actions/github-script`](https://github.com/actions/github-script), so there's nothing to build or bundle.
+
