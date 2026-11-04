@@ -29,6 +29,13 @@ on:
     workflows: [Code owner review]
     types: [completed]
   workflow_dispatch: # re-checks every open PR
+  schedule:
+    - cron: '*/30 * * * *' # backstop if a review's relay didn't run
+
+# One run at a time per commit, so an older evaluation can't publish over a newer one. A queued
+# run is replaced by a newer one for the same commit, which is fine: each run reads the reviews fresh.
+concurrency:
+  group: code-owner-approval-${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha || 'all' }}
 
 permissions:
   statuses: write
@@ -74,6 +81,13 @@ On `pull_request` and `pull_request_review`, a PR from a fork runs the workflow 
 `pull_request_target` runs the PR's base branch's copy of the workflow, and `workflow_run` and `workflow_dispatch` run the default branch's copy. So the status is only ever set from code that's already in your repo, never from the PR. Reviews have no `_target` event, so the relay's only job is to start a `workflow_run` of the real check.
 
 The action refuses to run on any other event. It never checks out or runs code from the PR.
+
+The `schedule` re-check covers the one gap left: a fork PR can delete the relay workflow from its branch, so a later review wouldn't start a re-check. The `concurrency` group stops two runs for the same commit from publishing out of order.
+
+## Limits
+
+- **Anyone with write access can forge the status.** A workflow on their own branch gets a write token and can post `Code owner approval: success` itself, and GitHub can't tell it apart from this workflow, since both come from GitHub Actions. That makes this safe against fork contributors, but not against collaborators with write access. If you need it to hold against them, publish the status with a GitHub App whose key is stored in an environment that only the default branch can use, and require the check from that app.
+- Per-path ownership and `@org/team` owners aren't resolved (see above).
 
 ## Inputs
 
