@@ -58,7 +58,7 @@ jobs:
   relay:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Review on PR #${{ github.event.pull_request.number }}; Code owner approval re-checks it."
+      - run: echo "Review on PR ${{ github.event.pull_request.number }}, Code owner approval re-checks it"
 ```
 
 Then, in branch protection or a ruleset for your default branch:
