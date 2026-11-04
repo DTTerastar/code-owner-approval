@@ -1,0 +1,27 @@
+name: Code owner approval
+description: Require a code owner's approval on pull requests, except ones a code owner opened
+author: DTTerastar
+branding:
+  icon: user-check
+  color: green
+
+inputs:
+  token:
+    description: Token with statuses:write, pull-requests:read and contents:read
+    default: ${{ github.token }}
+  context:
+    description: Name of the commit status to set. Make this a required status check.
+    default: Code owner approval
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/github-script@v9
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        STATUS_CONTEXT: ${{ inputs.context }}
+      with:
+        github-token: ${{ inputs.token }}
+        script: |
+          const { run } = require(`${process.env.ACTION_PATH}/index.js`);
+          await run({ github, context, core, statusContext: process.env.STATUS_CONTEXT });
